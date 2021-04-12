@@ -1,6 +1,6 @@
 pragma solidity >= 0.5.0 < 0.7.0;
 
-contract LandRegistery {
+contract UserData {
 
     string public payload;
 

@@ -1,6 +1,6 @@
 import json
 from web3 import Web3, HTTPProvider
-from ethereum_input_decoder import ContractAbi
+#from ethereum_input_decoder import ContractAbi
 
 
 blockchain_address = 'http://52.66.236.97:5000'
@@ -21,10 +21,12 @@ contract = web3.eth.contract(address=deployed_contract_address, abi=contract_abi
 
 message = contract.functions.sayHello().call()
 
-tx_hash = contract.functions.setPayload('{name: land}').transact()
-tx_receipt = web3.eth.waitForTransactionReceipt(tx_hash)
-print('tx_hash: {}'.format(tx_hash.hex()))
-tx_value = contract.functions.getPayload().call()
+for i in range(11):
+    tx_hash = contract.functions.setPayload('{name: John, reg_no: 000%s, ll: Address, email: email, phone: 1234567890, adhar: 123412341234, pan: ALWPG5809L}'%str(i)).transact()
+    tx_receipt = web3.eth.waitForTransactionReceipt(tx_hash)
+    print(tx_receipt)
+    print('tx_hash: {}'.format(tx_hash.hex()))
+    tx_value = contract.functions.getPayload().call()
 
 latest = web3.eth.blockNumber
 blockNumbers = range(latest - 10, latest + 1, 1)
