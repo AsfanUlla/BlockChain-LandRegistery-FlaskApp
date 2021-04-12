@@ -374,7 +374,7 @@ function Transfer(rec){
                 //
             },
             onApprove : function() {
-                var payload = window.myarray[rec].content;
+                var payload = window.grsp[rec].content;
 		const data = new FormData($('#login_form')[0]);
         	const value = Object.fromEntries(data.entries());
 		var re = /[0-9A-Fa-f]{6}/g;
