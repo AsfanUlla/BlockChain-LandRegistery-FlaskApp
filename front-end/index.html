@@ -1,0 +1,914 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <!-- Standard Meta -->
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+
+  <!-- Site Properties -->
+  <title>Land Registry</title>
+  <link rel="stylesheet" type="text/css" href="./seui/semantic.min.css">
+
+  <style type="text/css">
+
+    .hidden.menu {
+      display: none;
+    }
+
+    .masthead.segment {
+      padding: 1em 0em;
+    }
+    .masthead .logo.item img {
+      margin-right: 1em;
+    }
+    .masthead .ui.menu .ui.button {
+      margin-left: 0.5em;
+    }
+    .masthead h1.ui.header {
+      margin-top: 3em;
+      margin-bottom: 0em;
+      font-size: 4em;
+      font-weight: normal;
+    }
+    .masthead h2 {
+      font-size: 1.7em;
+      font-weight: normal;
+    }
+    /*
+    .ui.vertical.stripe {
+      padding: 8em 0em;
+    }
+    .ui.vertical.stripe h3 {
+      font-size: 2em;
+    }
+    .ui.vertical.stripe .button + h3,
+    .ui.vertical.stripe p + h3 {
+      margin-top: 3em;
+    }
+    .ui.vertical.stripe .floated.image {
+      clear: both;
+    }
+    .ui.vertical.stripe p {
+      font-size: 1.33em;
+    }
+    .ui.vertical.stripe .horizontal.divider {
+      margin: 3em 0em;
+    }
+    */
+    .quote.stripe.segment {
+      padding: 0em;
+    }
+    .quote.stripe.segment .grid .column {
+      padding-top: 5em;
+      padding-bottom: 5em;
+    }
+
+    .footer.segment {
+      padding: 5em 0em;
+    }
+
+    .secondary.pointing.menu .toc.item {
+      display: none;
+    }
+
+    @media only screen and (max-width: 700px) {
+      .ui.fixed.menu {
+        display: none !important;
+      }
+      /*.secondary.pointing.menu .item,
+      .secondary.pointing.menu .menu {
+        display: none;
+      }
+      .secondary.pointing.menu .toc.item {
+        display: block;
+      }*/
+      .masthead.segment {
+       /* min-height: 350px;*/
+      }
+      .masthead h1.ui.header {
+        font-size: 2em;
+        margin-top: 1.5em;
+      }
+      .masthead h2 {
+        margin-top: 0.5em;
+        font-size: 1.5em;
+      }
+    }
+
+
+  </style>
+
+  <script src="./seui/jquery-3.6.0.min.js"></script>
+  <script src="./seui/semantic.min.js"></script>
+  <script>
+  $(document)
+    .ready(function() {
+
+      // fix menu when passed
+      /*$('.masthead')
+        .visibility({
+          once: false,
+          onBottomPassed: function() {
+            $('.fixed.menu').transition('fade in');
+          },
+          onBottomPassedReverse: function() {
+            $('.fixed.menu').transition('fade out');
+          }
+        })
+      ;*/
+
+      // create sidebar and attach to menu open
+      /*$('.ui.sidebar')
+        .sidebar('attach events', '.toc.item')
+      ;*/
+
+      $('.ui.accordion')
+        .accordion();
+
+        $('.ui.login.button').click(function() {
+      $('.ui.basic.login.modal')
+        .modal({
+            closable  : false,
+            blurring: true,
+            onDeny    : function(){
+                //
+            },
+            onApprove : function() {
+                login()
+		return false;
+            }
+     }).modal('show');
+    });
+
+    $('.ui.signup.button').click(function() {
+      $('.ui.basic.signup.modal')
+        .modal({
+            closable  : false,
+            blurring: true,
+            onDeny    : function(){
+                //
+            },
+            onApprove : function() {
+                sign_up();
+		return false;
+            }
+     }).modal('show');
+    });
+
+  
+      $('.ui.basic.register.modal')
+        .modal({
+            closable  : false,
+            blurring: true,
+            onDeny    : function(){
+                //
+            },
+            onApprove : function() {
+                register_land();
+		return false;
+            }
+     });
+
+    $('.ui.basic.request.modal')
+        .modal({
+            closable  : true,
+            blurring: true,
+            onDeny    : function(){
+                //
+            },
+            onApprove : function() {
+                //
+            }
+     });
+
+	    page_load();
+
+
+	if(sessionStorage.user){
+        	$('.ui.basic.login.modal').modal('hide');
+        	$('.ui.login.button').hide();
+        	$('.ui.signup.button').hide();
+		$('#my_land').show();
+        	$('.right.item').html(JSON.parse(sessionStorage.user)[0].content.name);
+	}
+
+	$('#my_land').hide();
+
+	//$('.ui.recipt.modal').modal("show");
+ });
+
+const uri = "http://35.154.123.59:5000";
+
+var grsp = ""
+
+//XMLHttpRequest
+function request(url, type, data="", todo=""){
+
+	function success(e){
+		switch(todo){
+			case "ALL_R":
+				var jrsp = jQuery.parseJSON(this.responseText).reverse();
+				window.grsp = jrsp;
+                		var list_html = "";
+                		$.each(jrsp, function (index, value) {
+					content = JSON.stringify(value.content);
+					if (value.content.reg_no){
+					list_html += '<div class="title">\n <i class="dropdown icon"></i>'+ value.hash +'</div>\n<div class="content">\n<table class="ui basic table">\n<thead>\n<tr>\n<th>Name</th>\n<th>Land registry no</th>\n<th>Land location</th>\n                      	</tr>\n</thead>\n<tbody>\n<tr>\n<td>'+value.content.name+'</td>\n<td>'+value.content.reg_no+'</td>\n<td>'+value.content.ll+'</td>\n</tr>\n</tbody>\n</table>\n<button class="ui primary detail button" onclick="user_detail('+index+')">Owner Details</button>\n<button class="ui secondary button" onclick="buy()">Buy</button>\n            				</div>\n';
+					}
+				});
+				$('#i_rows').html(list_html);
+				break;
+			case "SIGNUP":
+				var jrsp = jQuery.parseJSON(this.responseText);
+				$("#basic_modal_header").html('<i class="id badge icon"></i>User Key')
+				$("#basic_modal_content").html(jrsp.tx_hash)
+				$('.ui.basic.request.modal').modal('show');
+				break;
+			case "LOGIN":
+				var jrsp = jQuery.parseJSON(this.responseText);
+				if(jrsp[0].content.name){
+					if (typeof(Storage) !== "undefined") {
+						sessionStorage.setItem('user', JSON.stringify(jrsp));
+					}
+					$('.ui.basic.login.modal').modal('hide');
+					$('.ui.login.button').hide();
+					$('.ui.signup.button').hide();
+					$('.right.item').html(jrsp[0].content.name);
+				} else {
+					alert("Error Invalid key");
+				}
+				break;
+			case "LREG":
+				var jrsp = jQuery.parseJSON(this.responseText);
+				if(jrsp.tx_hash){
+					//tx_r = jQuery.parseJSON(jrsp.tx_receipt);
+					var r_r = '<p>Land Key - '+jrsp.tx_hash+'</p>\n                <table class="ui basic table">\n                    <thead>\n                     <tr>\n                        <th>Name</th>\n                        <th>Land registry no</th>\n                        <th>Land location</th>\n                        <th>Phone</th>\n                        <th>Email</th>\n                        <th>Adhar Number</th>\n                        <th>Pan Number</th>\n                      </tr>\n                    </thead>\n                    <tbody>\n                      <tr>\n                        <td>'+jrsp.tx_value.name+'</td>\n                        <td>'+jrsp.tx_value.reg_no+'</td>\n                        <td>'+jrsp.tx_value.ll+'</td>\n                        <td>'+jrsp.tx_value.phone+'</td>\n                        <td>'+jrsp.tx_value.email+'</td>\n                        <td>'+jrsp.tx_value.adhar+'</td>\n                        <td>'+jrsp.tx_value.pan+'</td>\n                      </tr>\n                    </tbody>\n    </table>\n';
+					$("#r_content").html(r_r);
+                                        $('.ui.recipt.modal').modal("show");
+					page_load();
+					console.log(jrsp);
+				}else{
+					alert("Error Occured");
+				}
+				$('.ui.basic.register.modal').modal('hide');
+				break;
+			case "TREG":
+				var jrsp = jQuery.parseJSON(this.responseText);
+
+                                if(jrsp.tx_hash){
+					tx_r = jQuery.parseJSON(jrsp.tx_receipt);
+					var t_r = '<p>Land Key - '+jrsp.tx_hash+'</p>\n                <table class="ui basic table">\n                   <thead>\n                      <tr>\n                        <th>Name</th>\n                        <th>Land registry no</th>\n                        <th>Land location</th>\n                        <th>Phone</th>\n                        <th>Email</th>\n                        <th>Adhar Number</th>\n                        <th>Pan Number</th>\n                      </tr>\n                    </thead>\n                    <tbody>\n                      <tr>\n                        <td>'+jrsp.tx_value.name+'</td>\n                        <td>'+jrsp.tx_value.reg_no+'</td>\n                        <td>'+jrsp.tx_value.ll+'</td>\n                        <td>'+jrsp.tx_value.phone+'</td>\n                        <td>'+jrsp.tx_value.email+'</td>\n                        <td>'+jrsp.tx_value.adhar+'</td>\n                        <td>'+jrsp.tx_value.pan+'</td>\n                      </tr>\n                    </tbody>\n                  </table>\n                  <table class="ui basic table">\n                    <thead>\n                      <tr>\n                        <th>From</th>\n                        <th>To</th>\n                      </tr>\n                    </thead>\n                    <tbody>\n                      <tr>\n                        <td>'+tx_r.to+'</td>\n                        <td>'+tx_r.from+'</td>\n                     </tr>\n                    </tbody>\n                </table>\n';
+					$("#r_content").html(t_r);
+					$('.ui.recipt.modal').modal("show");
+                                }else{
+                                        alert("Error Occured");
+                                }
+				break;
+			default:
+				console.log(this.responseText);
+		}
+	}
+
+	function error(e){
+    		console.log(this.responseText);
+	}
+
+	var request = new XMLHttpRequest();
+	request.addEventListener("load", success);
+	request.addEventListener("error", error);
+	request.open(type, url);
+	if(type == "POST" || type == "PUT"){
+  		request.send(data);
+	} else {
+  		request.send();
+	}
+}
+
+//$('.ui.primary.detail.button').click(function() {
+//  console.log($(this).data('object'));
+//});
+
+function page_load(){
+
+s_url = 'http://35.154.123.59:5000/';
+
+request(s_url, 'GET', "", "ALL_R");
+}
+
+$( "#sign_up_form" ).submit(function( event ) {
+  alert( "Handler for .submit() called." );
+  event.preventDefault();
+});
+
+function user_detail(detail){
+	console.log(window.grsp[detail].content.name);
+	$("#basic_modal_header").html('<i class="id badge icon"></i>User detail');
+	var det = 'Name: '+window.grsp[detail].content.name+'<br>Email: '+window.grsp[detail].content.email+'<br>Phone: '+window.grsp[detail].content.phone+'<br>Adhar: '+window.grsp[detail].content.adhar+'<br>Pan: '+window.grsp[detail].content.pan+'<br>';
+        $("#basic_modal_content").html(det);
+      	$('.ui.basic.request.modal').modal('show');
+}
+
+function buy(){
+	$("#basic_modal_header").html('<i class="archive icon"></i>Buy Request sent')
+	$("#basic_modal_content").html("Thank you for showing intrest in buying this land your request has been sent to the owner");
+        $('.ui.basic.request.modal').modal('show');
+}
+
+function sign_up(){
+	const data = new FormData($('#sign_up_form')[0]);
+        const value = Object.fromEntries(data.entries());
+	request(uri+"/signup/", "POST", JSON.stringify(value), "SIGNUP");
+}
+
+function login(){
+	const data = new FormData($('#login_form')[0]);
+        const value = Object.fromEntries(data.entries());
+        request(uri+"/login/", "POST", JSON.stringify(value), "LOGIN");
+}
+
+function register_land(){
+	const data = new FormData($('#lreg_form')[0]);
+        var value = Object.fromEntries(data.entries());
+        if(sessionStorage.user){
+		user_data = JSON.parse(sessionStorage.user);
+		value = Object.assign({}, value, user_data[0].content);
+		value["user_key"] = user_data[0].user_key;
+		value["sale"] = false;
+        	request(uri+"/records/", "POST", JSON.stringify(value), "LREG");
+	}
+}
+
+var myarray = new Array();
+
+function my_land(){
+
+	if(sessionStorage.user){
+		c_user = jQuery.parseJSON(sessionStorage.user);
+		var list_html = "";
+		$.each(window.grsp, function (index, value) {
+			if(value.content.user_key){
+				if(value.content.user_key == c_user[0].user_key){
+					myarray.push(value);
+					list_html += '<div class="title">\n <i class="dropdown icon"></i>'+ value.hash +'</div>\n<div class="content">\n<table class="ui basic table">\n<thead>\n<tr>\n<th>Name</th>\n<th>Land registry no</th>\n<th>Land location</th>\n<th>Email</th>\n<th>Phone</th>\n<th>Adhaar</th>\n<th>Pan</th>\n                       </tr>\n</thead>\n<tbody>\n<tr>\n<td>'+value.content.name+'</td>\n<td>'+value.content.reg_no+'</td>\n<td>'+value.content.ll+'</td>\n<td>'+value.content.email+'</td>\n<td>'+value.content.phone+'</td>\n<td>'+value.content.adhar+'</td>\n<td>'+value.content.pan+'</td>\n</tr>\n</tbody>\n</table>\n<button class="ui secondary button" onclick="Transfer('+index+')">Transfer</button>\n                                      </div>\n';
+				}
+			}
+		});
+		if(list_html != ""){
+			$('#i_rows').html(list_html);
+		}
+	}else {
+		alert("Login");
+	}
+}
+
+function Transfer(rec){
+	//console.log(window.myarray[rec]);
+	$("#l_header").html('<i class="id badge icon"></i>User Key to be transfered');
+	$("#l_btn").html('<i class="checkmark icon"></i>Transfer');
+	$('.ui.basic.login.modal')
+        .modal({
+            closable  : false,
+            blurring: true,
+            onDeny    : function(){
+                //
+            },
+            onApprove : function() {
+                var payload = window.myarray[rec].content;
+		const data = new FormData($('#login_form')[0]);
+        	const value = Object.fromEntries(data.entries());
+		var re = /[0-9A-Fa-f]{6}/g;
+		if(re.test(value.user_key)){
+			payload["user_key"] = value.user_key;
+			request(uri+"/records/", "POST", JSON.stringify(payload), "TREG");
+		}else {
+			alert("Invalid");
+		}
+                return true;
+            }
+	}).modal('show');
+
+}
+
+function add_land(){
+	if(sessionStorage.user){
+		$('.ui.basic.register.modal').modal("show");
+	} else {
+		alert("Login");
+	}
+}
+
+  </script>
+</head>
+<body>
+
+<!-- Following Menu -->
+<div class="ui large top fixed hidden menu">
+  <div class="ui container">
+    <a class="active item">Home</a>
+    <a class="item">Sell</a>
+    <a class="item">Buy</a>
+    <div class="right menu">
+      <div class="item">
+        <a class="ui login button">Log in</a>
+      </div>
+      <div class="item">
+        <a class="ui primary signup button">Sign Up</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Sidebar Menu -->
+<div class="ui vertical inverted sidebar menu">
+  <a class="active item">Home</a>
+  <!--<a class="item">Sell</a>
+  <a class="item">Buy</a>-->
+  <a class="item">Login</a>
+  <a class="item">Signup</a>
+</div>
+
+
+<!-- Page Contents -->
+<div class="pusher">
+  <div class="ui inverted vertical masthead center aligned segment">
+
+    <div class="ui container">
+      <div class="ui large secondary inverted pointing menu">
+        <!--<a class="toc item">
+          <i class="sidebar icon"></i>
+	</a>-->
+        <a class="active item" onclick="page_load()">Home</a>
+        <!--<a class="item">Sell</a>
+	<a class="item">Buy</a>-->
+	<a class="item" onclick="my_land()">My land</a>
+	<a class="item" id="add_land" onclick="add_land()">Add Land</a>
+        <div class="right item">
+          <a class="ui inverted login button">Log in</a>
+          <a class="ui inverted signup button">Sign Up</a>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="ui vertical stripe segment">
+    <div class="ui middle aligned container">
+        <h3>Lands Records</h3>
+        <div class="ui styled fluid accordion" id="i_rows">
+	   <!--	
+            <div class="title">
+              <i class="dropdown icon"></i>
+              0x5269e871d2d365a039923fa3dafd85e4af39b878d9141c017b0f4588972437fd
+            </div>
+            <div class="content">
+                <table class="ui basic table">
+                    <thead>
+                      <tr>
+                        <th>Name</th>
+                        <th>Land registry no</th>
+                        <th>Land location</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td>John</td>
+                        <td>00001</td>
+                        <td>Land Location</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                    <button class="ui primary button">Request Owner Details</button>
+                    <button class="ui secondary button">Buy</button>
+            </div>
+            <div class="title">
+                <i class="dropdown icon"></i>
+                0x9980abc5838844414d51ed5eb999048c165e415384dcef8c421dc3d0aaf69ee6
+              </div>
+              <div class="content">
+                  <table class="ui basic table">
+                      <thead>
+                        <tr>
+                          <th>Name</th>
+                          <th>Land registry no</th>
+                          <th>Land location</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <td>John</td>
+                          <td>00002</td>
+                          <td>Example Location</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                      <button class="ui primary button">Request Owner Details</button>
+                      <button class="ui secondary button">Buy</button>
+              </div>
+              <div class="title">
+                <i class="dropdown icon"></i>
+                0xc822d48c47dcfb1075401d6175ec7e6c3fbd0fb0322988ee434a9755ff05abd0
+              </div>
+              <div class="content">
+                  <table class="ui basic table">
+                      <thead>
+                        <tr>
+                          <th>Name</th>
+                          <th>Land registry no</th>
+                          <th>Land location</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <td>John</td>
+                          <td>00003</td>
+                          <td>Example Location</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                      <button class="ui primary button">Request Owner Details</button>
+                      <button class="ui secondary button">Buy</button>
+              </div>
+              <div class="title">
+                <i class="dropdown icon"></i>
+                0xdf21afeec782c0a599328b01180372e5ce2a25462aa6832626043eb13998c1f2
+              </div>
+              <div class="content">
+                  <table class="ui basic table">
+                      <thead>
+                        <tr>
+                          <th>Name</th>
+                          <th>Land registry no</th>
+                          <th>Land location</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <td>John</td>
+                          <td>00004</td>
+                          <td>Example Location</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                      <button class="ui primary button">Request Owner Details</button>
+                      <button class="ui secondary button">Buy</button>
+              </div>
+              <div class="title">
+                <i class="dropdown icon"></i>
+                0xf471b41b1f56537c17a99d96fde01d0a135e6ef015f324ad610f40a499f56fa1
+              </div>
+              <div class="content">
+                  <table class="ui basic table">
+                      <thead>
+                        <tr>
+                          <th>Name</th>
+                          <th>Land registry no</th>
+                          <th>Land location</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <td>John</td>
+                          <td>00005</td>
+                          <td>Example Location</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                      <button class="ui primary button">Request Owner Details</button>
+                      <button class="ui secondary button">Buy</button>
+              </div>
+              <div class="title">
+                <i class="dropdown icon"></i>
+                0x5033a25204e83efb807e1ee14ac926b461db8d676076d302c107040bf938eea1
+              </div>
+              <div class="content">
+                  <table class="ui basic table">
+                      <thead>
+                        <tr>
+                          <th>Name</th>
+                          <th>Land registry no</th>
+                          <th>Land location</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <td>John</td>
+                          <td>00006</td>
+                          <td>Example Location</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                      <button class="ui primary button">Request Owner Details</button>
+                      <button class="ui secondary button">Buy</button>
+              </div>
+              <div class="title">
+                <i class="dropdown icon"></i>
+                0xe5c6b0627ce9ad23c14af4f654a6802c726f4890c12843281a9ca594eb7c0e9f
+              </div>
+              <div class="content">
+                  <table class="ui basic table">
+                      <thead>
+                        <tr>
+                          <th>Name</th>
+                          <th>Land registry no</th>
+                          <th>Land location</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <td>John</td>
+                          <td>00007</td>
+                          <td>Example Location</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                      <button class="ui primary button">Request Owner Details</button>
+                      <button class="ui secondary button">Buy</button>
+              </div>
+              <div class="title">
+                <i class="dropdown icon"></i>
+                0x288c4627fc43b454e2128da8d07d139a99864b076742c9b34eb39ced1d65c9ad
+              </div>
+              <div class="content">
+                  <table class="ui basic table">
+                      <thead>
+                        <tr>
+                          <th>Name</th>
+                          <th>Land registry no</th>
+                          <th>Land location</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <td>John</td>
+                          <td>00008</td>
+                          <td>Example Location</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                      <button class="ui primary button">Request Owner Details</button>
+                      <button class="ui secondary button">Buy</button>
+              </div>
+              <div class="title">
+                <i class="dropdown icon"></i>
+                0x369fe52c7bb1ef85b12fe188022de5aef7ff876e57a9fef295b178d3295adbff
+              </div>
+              <div class="content">
+                  <table class="ui basic table">
+                      <thead>
+                        <tr>
+                          <th>Name</th>
+                          <th>Land registry no</th>
+                          <th>Land location</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <td>John</td>
+                          <td>00009</td>
+                          <td>Example Location</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                      <button class="ui primary button">Request Owner Details</button>
+                      <button class="ui secondary button">Buy</button>
+              </div>
+              <div class="title">
+                <i class="dropdown icon"></i>
+                0x55d3f173480517b5c9eb3306fe0fef9f7bd5c89fd44769d07b615de22ef70f96
+              </div>
+              <div class="content">
+                  <table class="ui basic table">
+                      <thead>
+                        <tr>
+                          <th>Name</th>
+                          <th>Land registry no</th>
+                          <th>Land location</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <td>John</td>
+                          <td>00010</td>
+                          <td>Example Location</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                      <button class="ui primary button">Request Owner Details</button>
+                      <button class="ui secondary button">Buy</button>
+              </div>
+	   -->
+          </div>
+    </div>
+  </div>
+
+  <div class="ui vertical center aligned stripe container segment">
+        <button class="ui labeled icon button">
+          <i class="left chevron icon"></i>
+          1
+        </button>
+        <button class="ui button">
+          2
+        </button>
+        <button class="ui right labeled icon button">
+          3
+          <i class="right chevron icon"></i>
+        </button>
+      </div>
+  </div>
+
+  <!--Login Modal-->
+  <div class="ui basic login modal">
+    <div class="ui icon header" id="l_header">
+      <i class="id badge icon"></i>
+      Log in
+    </div>
+    <div class="content"><center>
+        <form class="ui center aligned inverted form" id="login_form">
+            <div class="required eight wide field">
+              <label>User Key</label>
+              <input type="text" placeholder="User Key" name="user_key" required>
+            </div>
+        </form></center>
+    </div>
+    <div class="actions"><center>
+      <div class="ui red basic cancel inverted button">
+        <i class="remove icon"></i>
+        Cancel
+      </div>
+      <div class="ui green ok inverted button" id="l_btn">
+        <i class="checkmark icon"></i>
+        Login
+      </div></center>
+    </div>
+  </div>
+
+  <!--Signup Modal-->
+  <div class="ui basic signup modal">
+    <div class="ui icon header">
+      <i class="id badge icon"></i>
+      Sign Up
+    </div>
+    <div class="content"><center>
+        <form class="ui center aligned inverted form" id="sign_up_form" action="">
+            <div class="required eight wide field">
+              <label>Name</label>
+              <input type="text" placeholder="Name" name="name" required>
+            </div>
+            <div class="required eight wide field">
+                <label>Email</label>
+                <input type="text" placeholder="Email" name="email" required>
+              </div>
+              <div class="required eight wide field">
+                <label>Phone</label>
+                <input type="text" placeholder="Phone" name="phone" required>
+              </div>
+              <div class="required eight wide field">
+                <label>Adhar Number</label>
+                <input type="text" placeholder="Adhar Number" name="adhar" required>
+              </div>
+              <div class="required eight wide field">
+                <label>Pan Number</label>
+                <input type="text" placeholder="Pan Number" name="pan" required>
+              </div>
+        </form></center>
+    </div>
+    <div class="actions"><center>
+      <div class="ui red basic cancel inverted button">
+        <i class="remove icon"></i>
+        Cancel
+      </div>
+      <div class="ui green ok inverted button">
+        <i class="checkmark icon"></i>
+        Submit
+      </div></center>
+    </div>
+  </div>
+
+  <!--Land Reister Modal-->
+  <div class="ui basic register modal">
+    <div class="ui icon header">
+      <i class="id badge icon"></i>
+      Add Land Record
+    </div>
+    <div class="content"><center>
+        <form class="ui center aligned inverted form" id="lreg_form">
+            <div class="required eight wide field">
+              <label>Land registry no</label>
+              <input type="text" placeholder="Land registry no" name="reg_no" required>
+            </div>
+            <div class="required eight wide field">
+                <label>Land Location</label>
+                <textarea rows="2" name="ll" required></textarea>
+              </div>
+        </form></center>
+    </div>
+    <div class="actions"><center>
+      <div class="ui red basic cancel inverted button">
+        <i class="remove icon"></i>
+        Cancel
+      </div>
+      <div class="ui green ok inverted button">
+        <i class="checkmark icon"></i>
+        Submit
+      </div></center>
+    </div>
+  </div>
+
+  <!--Buy request sent-->
+  <div class="ui basic request modal">
+    <div class="ui icon header" id="basic_modal_header">
+      <i class="archive icon"></i>
+      Buy Request sent
+    </div>
+    <div class="content"><center>
+      <p id="basic_modal_content">Thank you for showing intrest in buying this land your request has been sent to the owner</p></center>
+    </div>
+    <div class="actions"><center>
+      <div class="ui green ok inverted button">
+        <i class="checkmark icon"></i>
+        Close
+      </div></center>
+    </div>
+  </div>
+
+  <!--Recipt -->
+  <div class="ui recipt modal">
+  <i class="close icon"></i>
+  <div class="header">
+    Transaction Recipt
+  </div>
+  <div class="content" id="r_content">
+ 	<p>Land Key - 0x5269e871d2d365a039923fa3dafd85e4af39b878d9141c017b0f4588972437fd</p>
+                <table class="ui basic table">
+                    <thead>
+                      <tr>
+                        <th>Name</th>
+                        <th>Land registry no</th>
+                        <th>Land location</th>
+                        <th>Phone</th>
+                        <th>Email</th>
+                        <th>Adhar Number</th>
+                        <th>Pan Number</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td>John</td>
+                        <td>00009</td>
+                        <td>Example Location</td>
+                        <td>1234567890</td>
+                        <td>john@doe.com</td>
+                        <td>1234/12345/12345</td>
+                        <td>ALWPG5809L</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                  <table class="ui basic table">
+                    <thead>
+                      <tr>
+                        <th>From</th>
+                        <th>To</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td>0x90F8bf6A479f320ead074411a4B0e7944Ea8c9C1</td>
+                        <td>0x9561C133DD8580860B6b7E504bC5Aa500f0f06a7</td>
+                     </tr>
+                    </tbody>
+                </table>
+  </div>
+</div>
+
+  <div class="ui inverted vertical footer segment">
+    <div class="ui container">
+      <div class="ui stackable inverted divided equal height stackable grid">
+        <div class="three wide column">
+          <h4 class="ui inverted header">About</h4>
+          <div class="ui inverted link list">
+            <a href="#" class="item">Sitemap</a>
+            <a href="#" class="item">Contact Us</a>
+          </div>
+        </div>
+        <div class="three wide column">
+          <h4 class="ui inverted header">Services</h4>
+          <div class="ui inverted link list">
+            <a href="#" class="item">Buy</a>
+            <a href="#" class="item">Sell</a>
+            <a href="#" class="item" onclick="add_land()">Register Land record</a>
+          </div>
+        </div>
+        <div class="seven wide column">
+          <h4 class="ui inverted header">Ethirium</h4>
+          <p>//</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</body>
+
+</html>
+
