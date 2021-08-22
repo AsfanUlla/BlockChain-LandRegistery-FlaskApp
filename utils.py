@@ -1,5 +1,10 @@
 import json
 from web3 import Web3, HTTPProvider
+import pandas as pd
+import json
+from hexbytes import HexBytes
+
+ALLOWED_EXTENSIONS = {'xls', 'xlsx'}
 
 
 def tx_to_json(tx):
@@ -27,10 +32,28 @@ class Utils:
         user_contract_abi = user_contract_json['abi']
     user_contract = web3.eth.contract(address=user_contract_address, abi=user_contract_abi)
 
-from hexbytes import HexBytes
+
+def allowed_file(filename):
+    return '.' in filename and \
+           filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
 
 class HexJsonEncoder(json.JSONEncoder):
     def default(self, obj):
         if isinstance(obj, HexBytes):
             return obj.hex()
         return super().default(obj)
+
+
+def read_excel(excel_file):
+    excel_records = pd.read_excel(excel_file)
+    excel_records_df = excel_records.loc[:, ~excel_records.columns.str.contains('^Unnamed')]
+    data = excel_records_df.to_dict(orient='record')
+    return data
+
+
+class JSONEncoder(json.JSONEncoder):
+    def default(self, o):
+        if not isinstance(o, str):
+            return str(o)
+        return json.JSONEncoder.default(self, o)

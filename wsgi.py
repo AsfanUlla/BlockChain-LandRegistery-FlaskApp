@@ -1,4 +1,4 @@
-from app2 import build_app
+from app import build_app
 
 
 app = build_app()

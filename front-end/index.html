@@ -35,27 +35,6 @@
       font-size: 1.7em;
       font-weight: normal;
     }
-    /*
-    .ui.vertical.stripe {
-      padding: 8em 0em;
-    }
-    .ui.vertical.stripe h3 {
-      font-size: 2em;
-    }
-    .ui.vertical.stripe .button + h3,
-    .ui.vertical.stripe p + h3 {
-      margin-top: 3em;
-    }
-    .ui.vertical.stripe .floated.image {
-      clear: both;
-    }
-    .ui.vertical.stripe p {
-      font-size: 1.33em;
-    }
-    .ui.vertical.stripe .horizontal.divider {
-      margin: 3em 0em;
-    }
-    */
     .quote.stripe.segment {
       padding: 0em;
     }
@@ -72,17 +51,19 @@
       display: none;
     }
 
+    table {
+      table-layout: fixed;
+      width: 100%
+    }
+
+    td, th {
+      word-wrap: break-word;
+    }
+
     @media only screen and (max-width: 700px) {
       .ui.fixed.menu {
         display: none !important;
       }
-      /*.secondary.pointing.menu .item,
-      .secondary.pointing.menu .menu {
-        display: none;
-      }
-      .secondary.pointing.menu .toc.item {
-        display: block;
-      }*/
       .masthead.segment {
        /* min-height: 350px;*/
       }
@@ -156,7 +137,7 @@
      }).modal('show');
     });
 
-  
+
       $('.ui.basic.register.modal')
         .modal({
             closable  : false,
@@ -179,6 +160,19 @@
             },
             onApprove : function() {
                 //
+            }
+     });
+
+     $('.ui.basic.bulk.modal')
+        .modal({
+            closable  : false,
+            blurring: true,
+            onDeny    : function(){
+                //
+            },
+            onApprove : function() {
+              upload_file();
+		          return false;
             }
      });
 
@@ -210,12 +204,17 @@ function request(url, type, data="", todo=""){
 			case "ALL_R":
 				var jrsp = jQuery.parseJSON(this.responseText).reverse();
 				window.grsp = jrsp;
-                		var list_html = "";
-                		$.each(jrsp, function (index, value) {
+        var list_html = "";
+        $.each(jrsp, function (index, value) {
 					content = JSON.stringify(value.content);
-					if (value.content.reg_no){
-					list_html += '<div class="title">\n <i class="dropdown icon"></i>'+ value.hash +'</div>\n<div class="content">\n<table class="ui basic table">\n<thead>\n<tr>\n<th>Name</th>\n<th>Land registry no</th>\n<th>Land location</th>\n                      	</tr>\n</thead>\n<tbody>\n<tr>\n<td>'+value.content.name+'</td>\n<td>'+value.content.reg_no+'</td>\n<td>'+value.content.ll+'</td>\n</tr>\n</tbody>\n</table>\n<button class="ui primary detail button" onclick="user_detail('+index+')">Owner Details</button>\n<button class="ui secondary button" onclick="buy()">Buy</button>\n            				</div>\n';
-					}
+          //console.log(value)
+          var t_head = "";
+          var t_bdy = "";
+          for (var key of Object.keys(value.content)) {
+            t_head += '<th>'+ key +'</th>\n';
+            t_bdy += '<td>'+ value.content[key] +'</td>\n'
+          }
+					list_html += '<div class="title">\n <i class="dropdown icon"></i>'+ value.hash +'</div>\n<div class="content">\n<table class="ui basic celled table">\n<thead>\n<tr>'+ t_head +'\n</tr>\n</thead>\n<tbody>\n<tr>'+ t_bdy +'\n</tr>\n</tbody>\n</table>\n<button class="ui secondary button" onclick="buy()">Buy</button>\n            				</div>\n';
 				});
 				$('#i_rows').html(list_html);
 				break;
@@ -243,7 +242,13 @@ function request(url, type, data="", todo=""){
 				var jrsp = jQuery.parseJSON(this.responseText);
 				if(jrsp.tx_hash){
 					//tx_r = jQuery.parseJSON(jrsp.tx_receipt);
-					var r_r = '<p>Land Key - '+jrsp.tx_hash+'</p>\n                <table class="ui basic table">\n                    <thead>\n                     <tr>\n                        <th>Name</th>\n                        <th>Land registry no</th>\n                        <th>Land location</th>\n                        <th>Phone</th>\n                        <th>Email</th>\n                        <th>Adhar Number</th>\n                        <th>Pan Number</th>\n                      </tr>\n                    </thead>\n                    <tbody>\n                      <tr>\n                        <td>'+jrsp.tx_value.name+'</td>\n                        <td>'+jrsp.tx_value.reg_no+'</td>\n                        <td>'+jrsp.tx_value.ll+'</td>\n                        <td>'+jrsp.tx_value.phone+'</td>\n                        <td>'+jrsp.tx_value.email+'</td>\n                        <td>'+jrsp.tx_value.adhar+'</td>\n                        <td>'+jrsp.tx_value.pan+'</td>\n                      </tr>\n                    </tbody>\n    </table>\n';
+          var t_head = "";
+          var t_bdy = "";
+          for (var key of Object.keys(jrsp.tx_value)) {
+            t_head += '<th>'+ key +'</th>\n';
+            t_bdy += '<td>'+ jrsp.tx_value[key] +'</td>\n'
+          }
+					var r_r = '<p>Land Key - '+jrsp.tx_hash+'</p>\n                <table class="ui basic table">\n                    <thead>\n                     <tr>\n'+ t_head +'\n</tr>\n                    </thead>\n                    <tbody>\n                      <tr>\n'+ t_bdy +'\n</tr>\n                    </tbody>\n    </table>\n';
 					$("#r_content").html(r_r);
                                         $('.ui.recipt.modal').modal("show");
 					page_load();
@@ -256,15 +261,36 @@ function request(url, type, data="", todo=""){
 			case "TREG":
 				var jrsp = jQuery.parseJSON(this.responseText);
 
-                                if(jrsp.tx_hash){
+        if(jrsp.tx_hash){
 					tx_r = jQuery.parseJSON(jrsp.tx_receipt);
-					var t_r = '<p>Land Key - '+jrsp.tx_hash+'</p>\n                <table class="ui basic table">\n                   <thead>\n                      <tr>\n                        <th>Name</th>\n                        <th>Land registry no</th>\n                        <th>Land location</th>\n                        <th>Phone</th>\n                        <th>Email</th>\n                        <th>Adhar Number</th>\n                        <th>Pan Number</th>\n                      </tr>\n                    </thead>\n                    <tbody>\n                      <tr>\n                        <td>'+jrsp.tx_value.name+'</td>\n                        <td>'+jrsp.tx_value.reg_no+'</td>\n                        <td>'+jrsp.tx_value.ll+'</td>\n                        <td>'+jrsp.tx_value.phone+'</td>\n                        <td>'+jrsp.tx_value.email+'</td>\n                        <td>'+jrsp.tx_value.adhar+'</td>\n                        <td>'+jrsp.tx_value.pan+'</td>\n                      </tr>\n                    </tbody>\n                  </table>\n                  <table class="ui basic table">\n                    <thead>\n                      <tr>\n                        <th>From</th>\n                        <th>To</th>\n                      </tr>\n                    </thead>\n                    <tbody>\n                      <tr>\n                        <td>'+tx_r.to+'</td>\n                        <td>'+tx_r.from+'</td>\n                     </tr>\n                    </tbody>\n                </table>\n';
+          jrsp.tx_value
+          var t_head = "";
+          var t_bdy = "";
+          for (var key of Object.keys(jrsp.tx_value)) {
+            t_head += '<th>'+ key +'</th>\n';
+            t_bdy += '<td>'+ jrsp.tx_value[key] +'</td>\n'
+          }
+					var t_r = '<p>Land Key - '+jrsp.tx_hash+'</p>\n                <table class="ui basic table">\n                   <thead>\n                      <tr>\n'+ t_head +'\n</tr>\n                    </thead>\n                    <tbody>\n                      <tr>\n'+ t_bdy +'\n</tr>\n                    </tbody>\n                  </table>\n                  <table class="ui basic table">\n                    <thead>\n                      <tr>\n                        <th>From</th>\n                        <th>To</th>\n                      </tr>\n                    </thead>\n                    <tbody>\n                      <tr>\n                        <td>'+tx_r.to+'</td>\n                        <td>'+tx_r.from+'</td>\n                     </tr>\n                    </tbody>\n                </table>\n';
 					$("#r_content").html(t_r);
 					$('.ui.recipt.modal').modal("show");
-                                }else{
-                                        alert("Error Occured");
-                                }
+        }else{
+          alert("Error Occured");
+        }
 				break;
+      case "BULKU":
+        var jrsp = jQuery.parseJSON(this.responseText);
+        if (jrsp.status == false){
+          alert(jrsp.message);
+        } else if (jrsp.status == true){
+          alert("records added to block chain");
+        } else {
+          console.log(this.responseText);
+          alert("Error Occured");
+        }
+        $('.ui.basic.bulk.modal').modal('hide');
+        $('#bulk_form').removeClass("loading");
+        $('#bulk_form')[0].reset();
+        break;
 			default:
 				console.log(this.responseText);
 		}
@@ -334,7 +360,7 @@ function register_land(){
 		user_data = JSON.parse(sessionStorage.user);
 		value = Object.assign({}, value, user_data[0].content);
 		value["user_key"] = user_data[0].user_key;
-		value["sale"] = false;
+		//value["sale"] = false;
         	request(uri+"/records/", "POST", JSON.stringify(value), "LREG");
 	}
 }
@@ -350,13 +376,21 @@ function my_land(){
 			if(value.content.user_key){
 				if(value.content.user_key == c_user[0].user_key){
 					myarray.push(value);
-					list_html += '<div class="title">\n <i class="dropdown icon"></i>'+ value.hash +'</div>\n<div class="content">\n<table class="ui basic table">\n<thead>\n<tr>\n<th>Name</th>\n<th>Land registry no</th>\n<th>Land location</th>\n<th>Email</th>\n<th>Phone</th>\n<th>Adhaar</th>\n<th>Pan</th>\n                       </tr>\n</thead>\n<tbody>\n<tr>\n<td>'+value.content.name+'</td>\n<td>'+value.content.reg_no+'</td>\n<td>'+value.content.ll+'</td>\n<td>'+value.content.email+'</td>\n<td>'+value.content.phone+'</td>\n<td>'+value.content.adhar+'</td>\n<td>'+value.content.pan+'</td>\n</tr>\n</tbody>\n</table>\n<button class="ui secondary button" onclick="Transfer('+index+')">Transfer</button>\n                                      </div>\n';
+          var t_head = "";
+          var t_bdy = "";
+          for (var key of Object.keys(value.content)) {
+            t_head += '<th>'+ key +'</th>\n';
+            t_bdy += '<td>'+ value.content[key] +'</td>\n'
+          }
+					list_html += '<div class="title">\n <i class="dropdown icon"></i>'+ value.hash +'</div>\n<div class="content">\n<table class="ui basic table">\n<thead>\n<tr>\n'+ t_head +'\n                       </tr>\n</thead>\n<tbody>\n<tr>\n'+ t_bdy +'\n</tr>\n</tbody>\n</table>\n<button class="ui secondary button" onclick="Transfer('+index+')">Transfer</button>\n                                      </div>\n';
 				}
 			}
 		});
 		if(list_html != ""){
 			$('#i_rows').html(list_html);
-		}
+		} else{
+      alert("No record found");
+    }
 	}else {
 		alert("Login");
 	}
@@ -390,9 +424,27 @@ function Transfer(rec){
 
 }
 
+function upload_file(){
+  $('#bulk_form').addClass("loading");
+  var data = new FormData($('#bulk_form')[0]);
+  if(sessionStorage.user){
+    user_data = JSON.parse(sessionStorage.user);
+    data.set('user_key', user_data[0].user_key);
+  }
+  request(uri+"/bulk_update/", "POST", data, "BULKU");
+}
+
 function add_land(){
 	if(sessionStorage.user){
 		$('.ui.basic.register.modal').modal("show");
+	} else {
+		alert("Login");
+	}
+}
+
+function bulk_update(){
+  if(sessionStorage.user){
+		$('.ui.basic.bulk.modal').modal("show");
 	} else {
 		alert("Login");
 	}
@@ -443,6 +495,7 @@ function add_land(){
 	<a class="item">Buy</a>-->
 	<a class="item" onclick="my_land()">My land</a>
 	<a class="item" id="add_land" onclick="add_land()">Add Land</a>
+  <a class="item" id="bulk_update" onclick="bulk_update()">Bulk add Land</a>
         <div class="right item">
           <a class="ui inverted login button">Log in</a>
           <a class="ui inverted signup button">Sign Up</a>
@@ -456,7 +509,7 @@ function add_land(){
     <div class="ui middle aligned container">
         <h3>Lands Records</h3>
         <div class="ui styled fluid accordion" id="i_rows">
-	   <!--	
+	   <!--
             <div class="title">
               <i class="dropdown icon"></i>
               0x5269e871d2d365a039923fa3dafd85e4af39b878d9141c017b0f4588972437fd
@@ -801,6 +854,32 @@ function add_land(){
                 <label>Land Location</label>
                 <textarea rows="2" name="ll" required></textarea>
               </div>
+        </form></center>
+    </div>
+    <div class="actions"><center>
+      <div class="ui red basic cancel inverted button">
+        <i class="remove icon"></i>
+        Cancel
+      </div>
+      <div class="ui green ok inverted button">
+        <i class="checkmark icon"></i>
+        Submit
+      </div></center>
+    </div>
+  </div>
+
+  <!--Bulk record upload-->
+  <div class="ui basic bulk modal">
+    <div class="ui icon header">
+      <i class="list alternate icon"></i>
+      Upload Land Records
+    </div>
+    <div class="content"><center>
+        <form class="ui center aligned inverted form" id="bulk_form">
+            <div class="required eight wide field">
+              <label>Select excel file</label>
+              <input type="file" placeholder="Select excel file" name="file" required>
+            </div>
         </form></center>
     </div>
     <div class="actions"><center>

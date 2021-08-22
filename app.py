@@ -1,47 +1,40 @@
-import json
-from web3 import Web3, HTTPProvider
-#from ethereum_input_decoder import ContractAbi
+from flask import Flask, render_template, request
+from views import GetRecords, ServeRecords, SignUp, Login, BulkUpdate
+from flask_cors import CORS
+
+app = Flask(__name__)
+
+origins = ["http://18.191.238.75", "http://127.0.0.1", "http://127.0.0.1:5000", "http://localhost", "http://localhost:5000"]
+
+CORS(app,
+    origins=origins)
 
 
-blockchain_address = 'http://52.66.236.97:5000'
+def build_app():
+    app.add_url_rule(
+        "/",
+        view_func=GetRecords.as_view("all-records")
+    )
 
-web3 = Web3(HTTPProvider(blockchain_address))
+    app.add_url_rule(
+        "/records/",
+        view_func=ServeRecords.as_view("serve-records")
+    )
 
-web3.eth.defaultAccount = web3.eth.accounts[0]
+    app.add_url_rule(
+        "/signup/",
+        view_func=SignUp.as_view("signup")
+    )
 
-compiled_contract_path = 'build/contracts/LandRegistery.json'
+    app.add_url_rule(
+        "/login/",
+        view_func=Login.as_view("login")
+    )
 
-deployed_contract_address = '0x9561C133DD8580860B6b7E504bC5Aa500f0f06a7'
+    app.add_url_rule(
+        "/bulk_update/",
+        view_func=BulkUpdate.as_view("bulk-update")
+    )
 
-with open(compiled_contract_path) as file:
-    contract_json = json.load(file)
-    contract_abi = contract_json['abi']
+    return app
 
-contract = web3.eth.contract(address=deployed_contract_address, abi=contract_abi)
-
-message = contract.functions.sayHello().call()
-
-for i in range(11):
-    tx_hash = contract.functions.setPayload('{name: John, reg_no: 000%s, ll: Address, email: email, phone: 1234567890, adhar: 123412341234, pan: ALWPG5809L}'%str(i)).transact()
-    tx_receipt = web3.eth.waitForTransactionReceipt(tx_hash)
-    print(tx_receipt)
-    print('tx_hash: {}'.format(tx_hash.hex()))
-    tx_value = contract.functions.getPayload().call()
-
-latest = web3.eth.blockNumber
-blockNumbers = range(latest - 10, latest + 1, 1)
-
-def tx_to_json(tx):
-    result = {}
-    for key, val in tx.items():
-        result[key] = val
-
-    return result
-
-for idx in blockNumbers:
-    block = web3.eth.getBlock(idx, full_transactions=True)
-
-    for tx in block.transactions:
-        txj = tx_to_json(tx).get('input')
-        decoded_input = contract.decode_function_input(txj)
-        print(decoded_input)
