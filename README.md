@@ -15,7 +15,7 @@ pip install -r requirements.txt
 
 ## post-installation
 update values of variables represented by ```<>``` in ```utils.py```
-    * note - contract address's are returned by the blockchain when they are deployed to the blockchain using the migrate command
+* note - contract address's are returned by the blockchain when they are deployed to the blockchain using the migrate command
 
 ## Run
 ```
