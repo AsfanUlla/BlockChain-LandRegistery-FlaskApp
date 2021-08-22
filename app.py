@@ -4,7 +4,7 @@ from flask_cors import CORS
 
 app = Flask(__name__)
 
-origins = ["http://18.191.238.75", "http://127.0.0.1", "http://127.0.0.1:5000", "http://localhost", "http://localhost:5000"]
+origins = ["http://127.0.0.1", "http://127.0.0.1:5000", "http://localhost", "http://localhost:5000"]
 
 CORS(app,
     origins=origins)
