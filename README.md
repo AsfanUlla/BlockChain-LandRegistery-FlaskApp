@@ -21,7 +21,7 @@ update values of variables represented by ```<>``` in ```utils.py```
 ```
 uwsgi -i uwsgi.ini
 ```
-* front end is simple html and jquery copy the code to root of your nginx server and update ```url & s_url``` variables if necessary
+* front end is simple html and jquery copy the code to root of your nginx server and update ```uri``` & ```s_url``` variables if necessary
 
 ## License :
 https://github.com/AsfanUlla/BlockChain-LandRegistery-FlaskApp/blob/main/LICENSE
