@@ -11,12 +11,12 @@ def tx_to_json(tx):
 
 
 class Utils:
-    blockchain_address = 'http://52.66.236.97:5000'
+    blockchain_address = 'http://18.219.214.162:5000'
     web3 = Web3(HTTPProvider(blockchain_address))
     web3.eth.defaultAccount = web3.eth.accounts[0]
     compiled_contract_path = 'build/contracts/LandRegistery.json'
-    deployed_contract_address = '0x9561C133DD8580860B6b7E504bC5Aa500f0f06a7'
-    user_contract_address = '0xf19A2A01B70519f67ADb309a994Ec8c69A967E8b'
+    deployed_contract_address = '0xf9eCa6E22156cb3fc17922A435653BFE1e0283AE'
+    user_contract_address = '0x1d2F0B41E3A89d1E12Ea9eB8b6eFD1b61cA1c521'
     compiled_user_contract = 'build/contracts/UserData.json'
     with open(compiled_contract_path) as file:
         contract_json = json.load(file)
